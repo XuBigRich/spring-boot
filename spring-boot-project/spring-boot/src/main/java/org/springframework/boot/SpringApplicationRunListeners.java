@@ -27,6 +27,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * 这是一个监听器集合，他里面有众多实现了SpringApplicationRunListener接口的，类，
+ * 这些实现了SpringApplicationRunListener接口的类，才是真正要去执行 监听的 监听器
  * A collection of {@link SpringApplicationRunListener}.
  *
  * @author Phillip Webb
@@ -42,6 +44,7 @@ class SpringApplicationRunListeners {
 		this.listeners = new ArrayList<>(listeners);
 	}
 
+	//当执行starting方法时，调用每一个监听器里面的starting方法
 	void starting() {
 		for (SpringApplicationRunListener listener : this.listeners) {
 			listener.starting();
@@ -85,18 +88,16 @@ class SpringApplicationRunListeners {
 	}
 
 	private void callFailedListener(SpringApplicationRunListener listener, ConfigurableApplicationContext context,
-			Throwable exception) {
+									Throwable exception) {
 		try {
 			listener.failed(context, exception);
-		}
-		catch (Throwable ex) {
+		} catch (Throwable ex) {
 			if (exception == null) {
 				ReflectionUtils.rethrowRuntimeException(ex);
 			}
 			if (this.log.isDebugEnabled()) {
 				this.log.error("Error handling failed", ex);
-			}
-			else {
+			} else {
 				String message = ex.getMessage();
 				message = (message != null) ? message : "no error message";
 				this.log.warn("Error handling failed (" + message + ")");

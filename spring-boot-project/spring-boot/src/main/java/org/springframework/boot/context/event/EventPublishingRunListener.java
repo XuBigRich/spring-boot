@@ -32,6 +32,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ErrorHandler;
 
 /**
+ *
+ * 这个类 是SpringApplicationRunListener接口的实现方法，
+ *
+ *
  * {@link SpringApplicationRunListener} to publish {@link SpringApplicationEvent}s.
  * <p>
  * Uses an internal {@link ApplicationEventMulticaster} for the events that are fired
@@ -50,11 +54,13 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	private final String[] args;
 
 	private final SimpleApplicationEventMulticaster initialMulticaster;
-
+	//他在SpringApplication$getRunListeners方法 被初始化
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
+		//initialMulticaster 可以看作一个监听器容器
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
+		//将application的所有监听器都放入initialMulticaster中
 		for (ApplicationListener<?> listener : application.getListeners()) {
 			this.initialMulticaster.addApplicationListener(listener);
 		}
@@ -67,6 +73,7 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	@Override
 	public void starting() {
+		//调用initialMulticaster$multicastEvent  传入一个开始事件, 最终 每一个监听器都会执行	listener.onApplicationEvent(event); 这个方法
 		this.initialMulticaster.multicastEvent(new ApplicationStartingEvent(this.application, this.args));
 	}
 
