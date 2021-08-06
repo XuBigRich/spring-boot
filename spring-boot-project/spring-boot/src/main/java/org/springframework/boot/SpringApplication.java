@@ -84,6 +84,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
+ *
+ * 第三方学习笔记： https://www.jianshu.com/p/08256c09188d
+ *
+ *
+ *
  * Class that can be used to bootstrap and launch a Spring application from a Java main
  * method. By default class will perform the following steps to bootstrap your
  * application:
@@ -284,8 +289,10 @@ public class SpringApplication {
 	//生成一个堆栈追踪工具
 	private Class<?> deduceMainApplicationClass() {
 		try {
+			//通过抛出一个RuntimeException, 遍历其堆栈信息,
 			StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
 			for (StackTraceElement stackTraceElement : stackTrace) {
+				// 获取到类名中包含main方法的类, 实例化这个类, 赋值给SpringApplication的mainApplicationClass对象
 				if ("main".equals(stackTraceElement.getMethodName())) {
 					return Class.forName(stackTraceElement.getClassName());
 				}
