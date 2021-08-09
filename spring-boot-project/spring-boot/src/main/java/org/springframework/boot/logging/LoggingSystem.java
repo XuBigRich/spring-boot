@@ -28,6 +28,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 日志系统
  * Common abstraction over logging systems.
  *
  * @author Phillip Webb
@@ -59,7 +60,9 @@ public abstract class LoggingSystem {
 	private static final Map<String, String> SYSTEMS;
 
 	static {
+		//声明一个Link 链表的HashMap
 		Map<String, String> systems = new LinkedHashMap<>();
+		//看这样子像是再加载什么实现类
 		systems.put("ch.qos.logback.core.Appender", "org.springframework.boot.logging.logback.LogbackLoggingSystem");
 		systems.put("org.apache.logging.log4j.core.impl.Log4jContextFactory",
 				"org.springframework.boot.logging.log4j2.Log4J2LoggingSystem");
@@ -155,11 +158,13 @@ public abstract class LoggingSystem {
 			}
 			return get(classLoader, loggingSystem);
 		}
+		//SYSTEMS属性是在 LoggingSystem进行初始化的时候 进行赋值的,然后遍历每个元素，并将key 这个类进行装载。
 		return SYSTEMS.entrySet().stream().filter((entry) -> ClassUtils.isPresent(entry.getKey(), classLoader))
+				//将类进行初始化，拿到第一个。并返回
 				.map((entry) -> get(classLoader, entry.getValue())).findFirst()
 				.orElseThrow(() -> new IllegalStateException("No suitable logging system located"));
 	}
-
+	//传入一个类加载器、与类的类全名，使用 参数而的有参 （含一个类加载器的） 构造方法  进行类的初始化
 	private static LoggingSystem get(ClassLoader classLoader, String loggingSystemClass) {
 		try {
 			Class<?> systemClass = ClassUtils.forName(loggingSystemClass, classLoader);

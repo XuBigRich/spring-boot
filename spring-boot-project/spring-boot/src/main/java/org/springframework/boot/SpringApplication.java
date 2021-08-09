@@ -197,7 +197,7 @@ public class SpringApplication {
 	public static final String BANNER_LOCATION_PROPERTY = SpringApplicationBannerPrinter.BANNER_LOCATION_PROPERTY;
 	//无头模式
 	private static final String SYSTEM_PROPERTY_JAVA_AWT_HEADLESS = "java.awt.headless";
-	//日志托管
+	//日志托管   将先会加载LoggingSystem 类的 静态方法   再调用getLog方法
 	private static final Log logger = LogFactory.getLog(SpringApplication.class);
 
 	private Set<Class<?>> primarySources;
