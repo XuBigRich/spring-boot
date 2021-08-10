@@ -32,10 +32,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ErrorHandler;
 
 /**
- *
  * 这个类 是SpringApplicationRunListener接口的实现方法，
- *
- *
+ * <p>
+ * <p>
  * {@link SpringApplicationRunListener} to publish {@link SpringApplicationEvent}s.
  * <p>
  * Uses an internal {@link ApplicationEventMulticaster} for the events that are fired
@@ -54,13 +53,16 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	private final String[] args;
 
 	private final SimpleApplicationEventMulticaster initialMulticaster;
+
 	//他在SpringApplication$getRunListeners方法 被初始化
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
 		//initialMulticaster 可以看作一个监听器容器
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
-		//将application的所有监听器都放入initialMulticaster中
+		//将application的所有监听器都放入initialMulticaster中，
+		//注意后面广播的时候需要用的initialMulticaster的defaultRetriever.applicationListeners属性
+		//而监听器列表来源正是在初始化 EventPublishingRunListener（本类的时候添加进去的）
 		for (ApplicationListener<?> listener : application.getListeners()) {
 			this.initialMulticaster.addApplicationListener(listener);
 		}
@@ -72,8 +74,13 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	}
 
 	@Override
+	//starting是事件触发者
 	public void starting() {
-		//调用initialMulticaster$multicastEvent  传入一个开始事件, 最终 每一个监听器都会执行	listener.onApplicationEvent(event); 这个方法
+		//调用initialMulticaster$multicastEvent  传入一个开始事件, 最终 每一个监听器都会执行
+		// listener.onApplicationEvent(event); 这个方法
+		//initialMulticaster 是一个事件监听器 、是一个回调接口类 ，但在此处它主要用于事件的广播，广播给application 所有的监听器
+		// multicastEvent（广播事件，通知application下面的所有监听器）是回调方法 、是一个回调函数接口
+		// application 执行被回调的对象，ApplicationStartingEvent对事件源进行包装
 		this.initialMulticaster.multicastEvent(new ApplicationStartingEvent(this.application, this.args));
 	}
 
@@ -117,8 +124,7 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 			// Listeners have been registered to the application context so we should
 			// use it at this point if we can
 			context.publishEvent(event);
-		}
-		else {
+		} else {
 			// An inactive context may not have a multicaster so we use our multicaster to
 			// call all of the context's listeners instead
 			if (context instanceof AbstractApplicationContext) {
