@@ -24,8 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.util.ClassUtils;
-import sun.applet.AppletClassLoader;
-import sun.misc.Launcher;
 
 /**
  * {@link ApplicationListener} that replaces the liquibase {@link ServiceLocator} with a

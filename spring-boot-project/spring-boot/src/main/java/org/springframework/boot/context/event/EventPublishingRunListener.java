@@ -76,11 +76,16 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	@Override
 	//starting是事件触发者
 	public void starting() {
-		//调用initialMulticaster$multicastEvent  传入一个开始事件, 最终 每一个监听器都会执行
-		// listener.onApplicationEvent(event); 这个方法
-		//initialMulticaster 是一个事件监听器 、是一个回调接口类 ，但在此处它主要用于事件的广播，广播给application 所有的监听器
-		// multicastEvent（广播事件，通知application下面的所有监听器）是回调方法 、是一个回调函数接口
-		// application 执行被回调的对象，ApplicationStartingEvent对事件源进行包装
+		//---------观察者模式------------
+		//调用initialMulticaster$multicastEvent  传入一个开始事件, 最终 每一个监听器都会执行  ，这是一个典型的观察者模式
+		//initialMulticaster是被观察者，监听器是观察者，他们只观察对自己感兴趣的事件。
+		//调用multicastEvent方法，它通过传入一个事件，通过广播的形式来通知所有观察者
+		//在initialMulticaster里面的每一个 监听器是都是事件观察者
+		//getApplicationListeners(event, type) 就可以将对开始事件感兴趣的监听器都取出来，然后他们就是对事件感兴趣的观察者
+		//---------监听器模式---------------------------
+		//最终每一个对事件感兴趣的监听器都会执行下面这个方法，这就是监听者模式
+		// listener.onApplicationEvent(event); 这个方法是监听模式的回调方法
+		//监听器会根据事件对象，确定自己要执行怎样的处理逻辑
 		this.initialMulticaster.multicastEvent(new ApplicationStartingEvent(this.application, this.args));
 	}
 
