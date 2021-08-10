@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.util.ClassUtils;
+import sun.applet.AppletClassLoader;
+import sun.misc.Launcher;
 
 /**
  * {@link ApplicationListener} that replaces the liquibase {@link ServiceLocator} with a
@@ -46,7 +48,8 @@ public class LiquibaseServiceLocatorApplicationListener implements ApplicationLi
 	public void onApplicationEvent(ApplicationStartingEvent event) {
 //		ClassUtils.isPresent 这个方法会先寻找 ClassUtils 的静态属性 commonClassCache 与primitiveTypeNameMap，看是否已经将 className 加载并缓存
 		//若没有，则先将 className进行处理， 排除数组 和list类型的类全名，仅保存真正的 类,然后使用类装载器进行装载
-		//这一步也就是说 对liquibase.servicelocator.CustomResolverServiceLocator 这个类 进行装载，使用与SpringApplication一样的类加载器加载
+		//这个代码的作用：
+		// 	对liquibase.servicelocator.CustomResolverServiceLocator 这个类 进行装载，使用与SpringApplication一样的类加载器加载
 		if (ClassUtils.isPresent("liquibase.servicelocator.CustomResolverServiceLocator",
 				event.getSpringApplication().getClassLoader())) {
 			//执行初始化LiquibasePresent，执行replaceServiceLocator方法
@@ -61,8 +64,17 @@ public class LiquibaseServiceLocatorApplicationListener implements ApplicationLi
 	private static class LiquibasePresent {
 
 		void replaceServiceLocator() {
-			//自定义服务定位解析器
+			//服务定位器模式
+			//自定义服务定位解析器，继承自ServiceLocator 类
+			// ServiceLocator初始化时，他会先加载一系列 预先准备的服务定位器，若这些准备好的不存在，那么使用默认的服务定位器
+
+			//默认的服务定位器：
+			// 默认的服务定位器在初始化的时候，会 通过setResourceAccessor方法，将初始化好的 ClassLoaderResourceAccessor对象封装到resourceAccessor属性中
+			//初始化 ClassLoaderResourceAccessor
+			//ClassLoaderResourceAccessor在初始化时 ，会先获取哪个类加载器加载的本对象，然后通过这个类加载器 ，找到他所有加载过的类的jar包 实际地址;
+			//将取到的jar包实际地址，放入到ClassLoaderResourceAccessor类的rootStrings属性中
 			CustomResolverServiceLocator customResolverServiceLocator = new CustomResolverServiceLocator(
+					//放入处理类
 					new SpringPackageScanClassResolver(logger));
 			ServiceLocator.setInstance(customResolverServiceLocator);
 		}
