@@ -45,9 +45,11 @@ import org.springframework.util.StringValueResolver;
  *
  * @author Phillip Webb
  * @since 2.0.0
+ * 应用转换服务 -》FormattingConversionService-》 extends GenericConversionService   implements FormatterRegistry, EmbeddedValueResolverAware
+ * GenericConversionService -》GenericConversionService
  */
 public class ApplicationConversionService extends FormattingConversionService {
-
+	//私有的静态的共享实例 听起来名字怪怪的
 	private static volatile ApplicationConversionService sharedInstance;
 
 	public ApplicationConversionService() {
@@ -62,36 +64,48 @@ public class ApplicationConversionService extends FormattingConversionService {
 	}
 
 	/**
+	 * 太搞笑了这竟然像一个单例模式
+	 * <p>
 	 * Return a shared default application {@code ConversionService} instance, lazily
 	 * building it once needed.
 	 * <p>
 	 * Note: This method actually returns an {@link ApplicationConversionService}
 	 * instance. However, the {@code ConversionService} signature has been preserved for
 	 * binary compatibility.
+	 *
 	 * @return the shared {@code ApplicationConversionService} instance (never
 	 * {@code null})
 	 */
 	public static ConversionService getSharedInstance() {
+		//查看那个私有的共享示例是否需要初始化
 		ApplicationConversionService sharedInstance = ApplicationConversionService.sharedInstance;
+		//如果需要初始化
 		if (sharedInstance == null) {
+			//上锁
 			synchronized (ApplicationConversionService.class) {
+				//判断上锁期间是否已经被初始化过
 				sharedInstance = ApplicationConversionService.sharedInstance;
+				//如果依然没有被初始化
 				if (sharedInstance == null) {
+					//使用默认的构造方法创建一个静态实例
 					sharedInstance = new ApplicationConversionService();
+					//将这个静态实例赋值给 自己的变量sharedInstance
 					ApplicationConversionService.sharedInstance = sharedInstance;
 				}
 			}
 		}
+		//返回这个 私有属性变量，这里将私有的静态变量开放出去，所以这可能依然是一个单例模式，因为一个ApplicationConversionService类中只能有一个sharedInstance属性对象
 		return sharedInstance;
 	}
 
 	/**
 	 * Configure the given {@link FormatterRegistry} with formatters and converters
 	 * appropriate for most Spring Boot applications.
+	 *
 	 * @param registry the registry of converters to add to (must also be castable to
-	 * ConversionService, e.g. being a {@link ConfigurableConversionService})
+	 *                 ConversionService, e.g. being a {@link ConfigurableConversionService})
 	 * @throws ClassCastException if the given FormatterRegistry could not be cast to a
-	 * ConversionService
+	 *                            ConversionService
 	 */
 	public static void configure(FormatterRegistry registry) {
 		DefaultConversionService.addDefaultConverters(registry);
@@ -102,10 +116,11 @@ public class ApplicationConversionService extends FormattingConversionService {
 
 	/**
 	 * Add converters useful for most Spring Boot applications.
+	 *
 	 * @param registry the registry of converters to add to (must also be castable to
-	 * ConversionService, e.g. being a {@link ConfigurableConversionService})
+	 *                 ConversionService, e.g. being a {@link ConfigurableConversionService})
 	 * @throws ClassCastException if the given ConverterRegistry could not be cast to a
-	 * ConversionService
+	 *                            ConversionService
 	 */
 	public static void addApplicationConverters(ConverterRegistry registry) {
 		addDelimitedStringConverters(registry);
@@ -122,10 +137,11 @@ public class ApplicationConversionService extends FormattingConversionService {
 
 	/**
 	 * Add converters to support delimited strings.
+	 *
 	 * @param registry the registry of converters to add to (must also be castable to
-	 * ConversionService, e.g. being a {@link ConfigurableConversionService})
+	 *                 ConversionService, e.g. being a {@link ConfigurableConversionService})
 	 * @throws ClassCastException if the given ConverterRegistry could not be cast to a
-	 * ConversionService
+	 *                            ConversionService
 	 */
 	public static void addDelimitedStringConverters(ConverterRegistry registry) {
 		ConversionService service = (ConversionService) registry;
@@ -137,6 +153,7 @@ public class ApplicationConversionService extends FormattingConversionService {
 
 	/**
 	 * Add formatters useful for most Spring Boot applications.
+	 *
 	 * @param registry the service to register default formatters with
 	 */
 	public static void addApplicationFormatters(FormatterRegistry registry) {
@@ -148,7 +165,8 @@ public class ApplicationConversionService extends FormattingConversionService {
 	/**
 	 * Add {@link GenericConverter}, {@link Converter}, {@link Printer}, {@link Parser}
 	 * and {@link Formatter} beans from the specified context.
-	 * @param registry the service to register beans with
+	 *
+	 * @param registry    the service to register beans with
 	 * @param beanFactory the bean factory to get the beans from
 	 * @since 2.2.0
 	 */
@@ -161,17 +179,13 @@ public class ApplicationConversionService extends FormattingConversionService {
 		for (Object bean : beans) {
 			if (bean instanceof GenericConverter) {
 				registry.addConverter((GenericConverter) bean);
-			}
-			else if (bean instanceof Converter) {
+			} else if (bean instanceof Converter) {
 				registry.addConverter((Converter<?, ?>) bean);
-			}
-			else if (bean instanceof Formatter) {
+			} else if (bean instanceof Formatter) {
 				registry.addFormatter((Formatter<?>) bean);
-			}
-			else if (bean instanceof Printer) {
+			} else if (bean instanceof Printer) {
 				registry.addPrinter((Printer<?>) bean);
-			}
-			else if (bean instanceof Parser) {
+			} else if (bean instanceof Parser) {
 				registry.addParser((Parser<?>) bean);
 			}
 		}

@@ -39,7 +39,9 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 
 	public DefaultApplicationArguments(String... args) {
 		Assert.notNull(args, "Args must not be null");
+		//建立一个Source类对象
 		this.source = new Source(args);
+		//保留参数的原始形态
 		this.args = args;
 	}
 
@@ -70,6 +72,7 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 		return this.source.getNonOptionArgs();
 	}
 
+	//Source类 继承自SimpleCommandLinePropertySource  类
 	private static class Source extends SimpleCommandLinePropertySource {
 
 		Source(String[] args) {

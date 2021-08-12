@@ -84,11 +84,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
- *
  * 第三方学习笔记： https://www.jianshu.com/p/08256c09188d
- *
- *
- *
+ * <p>
+ * <p>
+ * <p>
  * Class that can be used to bootstrap and launch a Spring application from a Java main
  * method. By default class will perform the following steps to bootstrap your
  * application:
@@ -168,6 +167,7 @@ public class SpringApplication {
 	/**
 	 * The class name of application context that will be used by default for non-web
 	 * environments.
+	 * 非web程序
 	 */
 	public static final String DEFAULT_CONTEXT_CLASS = "org.springframework.context."
 			+ "annotation.AnnotationConfigApplicationContext";
@@ -175,6 +175,8 @@ public class SpringApplication {
 	/**
 	 * The class name of application context that will be used by default for web
 	 * environments.
+	 *
+	 * 如果这个程序是一个web 程序 那么使用 下面这个类去装载配置文件
 	 */
 	public static final String DEFAULT_SERVLET_WEB_CONTEXT_CLASS = "org.springframework.boot."
 			+ "web.servlet.context.AnnotationConfigServletWebServerApplicationContext";
@@ -276,6 +278,7 @@ public class SpringApplication {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		//判断 并标识，这个springboot项目的类型,此项目没有其他依赖，是一个servlet类型的项目
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		//这是一个springboot的SPI
 		// 它通过读取项目下的META-INF/spring.factories 配置文件，找到ApplicationContextInitializer的所有实现类，将他们实例化放入initializers 属性
@@ -323,11 +326,12 @@ public class SpringApplication {
 		//触发监听事件 中的启动事件
 		listeners.starting();
 		try {
-
+			//传入 在启动springboot的时候 传入的参数 ，给DefaultApplicationArguments 这个类作为构造方法的入参,
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
 			configureIgnoreBeanInfo(environment);
 			Banner printedBanner = printBanner(environment);
+			//开始给springboot ConfigurableApplicationContext赋值
 			context = createApplicationContext();
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[]{ConfigurableApplicationContext.class}, context);
@@ -357,7 +361,9 @@ public class SpringApplication {
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
 													   ApplicationArguments applicationArguments) {
 		// Create and configure the environment
+		//根据项目类型创建接收配置文件的 实体类对象
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
+		//开始根据项目入参设置配置文件
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		ConfigurationPropertySources.attach(environment);
 		listeners.environmentPrepared(environment);
@@ -508,8 +514,15 @@ public class SpringApplication {
 		if (this.environment != null) {
 			return this.environment;
 		}
+		//记住这是一个servlet类型的项目
 		switch (this.webApplicationType) {
 			case SERVLET:
+				//使用StandardServletEnvironment类型的配置文件去读取配置文件
+				//StandardServletEnvironment 的初始化 只会 调用其父类 AbstractEnvironment 的默认构造方法 执行customizePropertySources
+				//而 customizePropertySources 是由 StandardServletEnvironment 去实现的
+				//AbstractEnvironment 的参数在初始化的时候 会生成MutablePropertySources  与ConfigurablePropertyResolver 两个 类型对象
+				//StandardServletEnvironment子类的 customizePropertySources 方法 会接收 MutablePropertySources 对象，往里面赋值
+				//首先 StandardServletEnvironment在初始化的时候会初始化一些 已经定义好的属性 通过 .addLast 添加给 MutablePropertySources 对象
 				return new StandardServletEnvironment();
 			case REACTIVE:
 				return new StandardReactiveWebEnvironment();
@@ -531,6 +544,7 @@ public class SpringApplication {
 	 * @see #configurePropertySources(ConfigurableEnvironment, String[])
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
+		//这个值没有特殊情况默认是true
 		if (this.addConversionService) {
 			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
@@ -540,6 +554,7 @@ public class SpringApplication {
 	}
 
 	/**
+	 * 入参是，根据项目类型 生成的配置文件实体类对象， 与 启动项目时的传入 参数
 	 * Add, remove or re-order any {@link PropertySource}s in this application's
 	 * environment.
 	 *
@@ -548,6 +563,7 @@ public class SpringApplication {
 	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
 	 */
 	protected void configurePropertySources(ConfigurableEnvironment environment, String[] args) {
+		//mutable 可变的， 可变的属性源
 		MutablePropertySources sources = environment.getPropertySources();
 		if (this.defaultProperties != null && !this.defaultProperties.isEmpty()) {
 			sources.addLast(new MapPropertySource("defaultProperties", this.defaultProperties));

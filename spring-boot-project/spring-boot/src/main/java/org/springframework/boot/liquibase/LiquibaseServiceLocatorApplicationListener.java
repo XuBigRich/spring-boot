@@ -74,6 +74,7 @@ public class LiquibaseServiceLocatorApplicationListener implements ApplicationLi
 			CustomResolverServiceLocator customResolverServiceLocator = new CustomResolverServiceLocator(
 					//放入处理类
 					new SpringPackageScanClassResolver(logger));
+			//ServiceLocator 的构造函数是只能在包内和  子类中实现，所以外部无法对他进行初始化，但是 他有一个静态的ServiceLocator属性 可供其他类调用
 			ServiceLocator.setInstance(customResolverServiceLocator);
 		}
 

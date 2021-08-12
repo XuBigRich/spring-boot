@@ -45,8 +45,8 @@ public enum WebApplicationType {
 	 */
 	REACTIVE;
 
-	private static final String[] SERVLET_INDICATOR_CLASSES = { "javax.servlet.Servlet",
-			"org.springframework.web.context.ConfigurableWebApplicationContext" };
+	private static final String[] SERVLET_INDICATOR_CLASSES = {"javax.servlet.Servlet",
+			"org.springframework.web.context.ConfigurableWebApplicationContext"};
 
 	private static final String WEBMVC_INDICATOR_CLASS = "org.springframework.web.servlet.DispatcherServlet";
 
@@ -58,16 +58,21 @@ public enum WebApplicationType {
 
 	private static final String REACTIVE_APPLICATION_CONTEXT_CLASS = "org.springframework.boot.web.reactive.context.ReactiveWebApplicationContext";
 
+	//由此静态方法判断这个springboot项目的类型  （其原理就是，加载一系列的类，判断项目中是否含有这些类，如果含有这些类就可以判定这是一个什么项目了）
 	static WebApplicationType deduceFromClasspath() {
+		//加载org.springframework.web.reactive.DispatcherHandler 这个类，查看是否可能顺利加载成功，并且 项目中不含有org.springframework.web.servlet.DispatcherServlet与org.glassfish.jersey.servlet.ServletContainer
+		//则判断这是一个REACTIVE类型的项目
 		if (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null) && !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, null)
 				&& !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, null)) {
 			return WebApplicationType.REACTIVE;
 		}
+		//判断可否顺利加载SERVLET_INDICATOR_CLASSES这个些类
 		for (String className : SERVLET_INDICATOR_CLASSES) {
 			if (!ClassUtils.isPresent(className, null)) {
 				return WebApplicationType.NONE;
 			}
 		}
+		//如果都不是上面类型的项目那么只能是SERVLET 类型的项目
 		return WebApplicationType.SERVLET;
 	}
 
@@ -84,8 +89,7 @@ public enum WebApplicationType {
 	private static boolean isAssignable(String target, Class<?> type) {
 		try {
 			return ClassUtils.resolveClassName(target, null).isAssignableFrom(type);
-		}
-		catch (Throwable ex) {
+		} catch (Throwable ex) {
 			return false;
 		}
 	}
