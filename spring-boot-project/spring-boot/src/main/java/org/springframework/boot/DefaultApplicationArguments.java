@@ -75,7 +75,7 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 	//Source类 继承自SimpleCommandLinePropertySource  类
 	private static class Source extends SimpleCommandLinePropertySource {
 
-		Source(String[] args) {
+		 Source(String[] args) {
 			super(args);
 		}
 

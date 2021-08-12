@@ -175,7 +175,7 @@ public class SpringApplication {
 	/**
 	 * The class name of application context that will be used by default for web
 	 * environments.
-	 *
+	 * <p>
 	 * 如果这个程序是一个web 程序 那么使用 下面这个类去装载配置文件
 	 */
 	public static final String DEFAULT_SERVLET_WEB_CONTEXT_CLASS = "org.springframework.boot."
@@ -366,6 +366,7 @@ public class SpringApplication {
 		//开始根据项目入参设置配置文件
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		ConfigurationPropertySources.attach(environment);
+		//通知观察者开始配置准备环境，将环境实体对象传给environmentPrepared方法
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
@@ -549,6 +550,7 @@ public class SpringApplication {
 			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
 		}
+		//如果没有参数那么这个方法将什么也不干
 		configurePropertySources(environment, args);
 		configureProfiles(environment, args);
 	}
@@ -568,11 +570,18 @@ public class SpringApplication {
 		if (this.defaultProperties != null && !this.defaultProperties.isEmpty()) {
 			sources.addLast(new MapPropertySource("defaultProperties", this.defaultProperties));
 		}
+		//如果项目要求可以读取初始化时传入的参数，且传入参数不为空
 		if (this.addCommandLineProperties && args.length > 0) {
+			//那么在命令行参数中取出名称为commandLineArgs的命令参数，这个地方是在构造 DefaultApplicationArguments类，
+			// 进行初始化的时候其内部类source类的父类SimpleCommandLinePropertySource 含一个参数的构造方法时，进行赋值调用的
 			String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
+			//正常有参数的话情况下肯定含有
 			if (sources.contains(name)) {
+				//取出启动项目时的传入参数
 				PropertySource<?> source = sources.get(name);
+				//将传入参数构建城属性源
 				CompositePropertySource composite = new CompositePropertySource(name);
+				//
 				composite.addPropertySource(
 						new SimpleCommandLinePropertySource("springApplicationCommandLineArgs", args));
 				composite.addPropertySource(source);
@@ -594,7 +603,9 @@ public class SpringApplication {
 	 * @see org.springframework.boot.context.config.ConfigFileApplicationListener
 	 */
 	protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
+		//将一个HashSet 包装城LinkedHashSet
 		Set<String> profiles = new LinkedHashSet<>(this.additionalProfiles);
+		//将environment
 		profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
 		environment.setActiveProfiles(StringUtils.toStringArray(profiles));
 	}

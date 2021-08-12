@@ -47,17 +47,21 @@ public class SystemEnvironmentPropertySourceEnvironmentPostProcessor implements 
 	private int order = DEFAULT_ORDER;
 
 	@Override
+	//在监听器列表中的一个实现类 的postProcessEnvironment方法之一
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 		String sourceName = StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
+		//读取获得 名称为systemEnvironment的属性，
 		PropertySource<?> propertySource = environment.getPropertySources().get(sourceName);
+		//如果systemEnvironment属性源不为null
 		if (propertySource != null) {
+
 			replacePropertySource(environment, sourceName, propertySource);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	private void replacePropertySource(ConfigurableEnvironment environment, String sourceName,
-			PropertySource<?> propertySource) {
+									   PropertySource<?> propertySource) {
 		Map<String, Object> originalSource = (Map<String, Object>) propertySource.getSource();
 		SystemEnvironmentPropertySource source = new OriginAwareSystemEnvironmentPropertySource(sourceName,
 				originalSource);
