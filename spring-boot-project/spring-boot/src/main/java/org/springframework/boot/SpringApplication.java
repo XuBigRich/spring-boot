@@ -451,7 +451,7 @@ public class SpringApplication {
 	 * 在配置文件 META-INF/spring.factories 中寻找 并初始化一个无参的 type接口的实现
 	 *
 	 * @param type 接口的类类型
-	 * @param <T>
+	 * @param <T> 返回这个接口的实现类的列表
 	 * @return
 	 */
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type) {
